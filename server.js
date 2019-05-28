@@ -124,7 +124,7 @@ app.get('/hhclusters/:sid/:month/:levelid/:cid/:AD/:SD/:BD', function (req, res)
     }
     dbConn.query('CALL spGetHHCountByCluster(?,?,?,?,?,?,?)',[surveyId, monthCode, levelId, clusterId, aimagCode, soumCode, bagCode], function (error, results, fields) {
      if (error) throw error;
-      return res.send({ error: false, data: results, message: 'users list.' });
+      return res.send({ error: false, data: results, message: 'spGetHHCountByCluster.' });
     });
 });
 
@@ -143,7 +143,7 @@ app.get('/clusters/:sid/:monthcode/:levelid/:AD/:SD/:BD', function (req, res) {
 
     dbConn.query('CALL spGetClusters(?,?,?,?,?,?)',[surveyId, monthCode, levelId, aimagCode, soumCode, bagCode], function (error, results, fields) {
      if (error) throw error;
-      return res.send({ error: false, data: results, message: 'users list.' });
+      return res.send({ error: false, data: results, message: 'spGetClusters.' });
     });
 
 });
