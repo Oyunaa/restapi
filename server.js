@@ -5,14 +5,14 @@ var express = require('express');
 
  app.use(bodyParser.json());
  app.use(bodyParser.urlencoded({
-     extended: true
+    extended: false
  }));
 
  // connection configurations
  var dbConn = mysql.createConnection({
-    host: 'localhost',
+    host: '10.0.1.13',
     user: 'root',
-    password: '',
+    password: 'qpmz.1214.',
     database: 'csweb'
 });
 // connect to database
@@ -21,7 +21,7 @@ dbConn.connect();
 
  // default route
  app.get('/', function (req, res) {
-     return res.send({ error: true, message: 'hello' })
+     return res.send({ error: true, message: 'service running' })
  });
 
 // Retrieve user with id 
@@ -45,7 +45,7 @@ app.get('/hhcount/:sid/:month/:levelid/:AD/:SD/:BD', function (req, res) {
 });
 // Retrieve user with id 
 app.get('/aimags', function (req, res) {
-    dbConn.query('SELECT * FROM libaimags', function (error, results, fields) {
+    dbConn.query('SELECT AimagCode, DescMon FROM libaimags', function (error, results, fields) {
      if (error) throw error;
       return res.send({ error: false, data: results, message: 'users list.' });
     });
@@ -55,7 +55,7 @@ app.get('/soums/:AD', function (req, res) {
     if (!aimagCode) {
         return res.status(400).send({ error: true, message: 'Аймаг сумын кодоо явуулна уу' });
        }
-    dbConn.query('SELECT * FROM libsoums where aimagcode = ?', aimagCode, function (error, results, fields) {
+    dbConn.query('SELECT AimagCode, SoumCode, DescMon FROM libsoums where AimagCode = ?', aimagCode, function (error, results, fields) {
      if (error) throw error;
       return res.send({ error: false, data: results, message: 'users list.' });
     });
@@ -68,7 +68,7 @@ app.get('/bags/:AD/:SD', function (req, res) {
     if (!aimagCode) {
         return res.status(400).send({ error: true, message: 'Аймаг сумын кодоо явуулна уу' });
        }
-    dbConn.query("SELECT * FROM libbags where aimagcode = ? AND soumcode = ?", [aimagCode,soumCode],  function (error, results, fields) {
+    dbConn.query("SELECT AimagCode, SoumCode, BagCode, DescMon FROM libbags where AimagCode = ? AND SoumCode = ?", [aimagCode,soumCode],  function (error, results, fields) {
 
 console.log(error);
 
@@ -82,7 +82,7 @@ app.get('/result/:sid', function (req, res) {
     if (!surveyId) {
      return res.status(400).send({ error: true, message: 'Please provide user_id' });
     }
-    dbConn.query('SELECT * FROM libresults where questionid = ?', surveyId , function (error, results, fields) {
+    dbConn.query('SELECT * FROM libresults where QuestionId = ?', surveyId , function (error, results, fields) {
      if (error) throw error;
       return res.send({ error: false, data: results, message: 'users list.' });
     });
@@ -103,6 +103,23 @@ app.get('/hhpoint/:sid/:month/:levelid/:AD/:SD/:BD', function (req, res) {
      return res.status(400).send({ error: true, message: 'Please provide user_id' });
     }
     dbConn.query('CALL spGetHHPoint(?,?,?,?,?,?)',[surveyId, monthCode, levelId, aimagCode, soumCode, bagCode], function (error, results, fields) {
+     if (error) throw error;
+      return res.send({ error: false, data: results, message: 'users list.' });
+    });
+});
+app.get('/hhpointdata/:sid/:month/:levelid/:AD/:SD/:BD', function (req, res) {
+    console.log( req.params);
+    let surveyId = req.params.sid;
+    let monthCode = req.params.month;
+    let levelId = req.params.levelid;
+    let aimagCode = req.params.AD;
+    let soumCode = req.params.SD;
+    let bagCode = req.params.BD;
+
+    if (!surveyId) {
+     return res.status(400).send({ error: true, message: 'Please provide user_id' });
+    }
+    dbConn.query('CALL spGetHHData(?,?,?,?,?,?)',[surveyId, monthCode, levelId, aimagCode, soumCode, bagCode], function (error, results, fields) {
      if (error) throw error;
       return res.send({ error: false, data: results, message: 'users list.' });
     });
@@ -147,17 +164,113 @@ app.get('/clusters/:sid/:monthcode/:levelid/:AD/:SD/:BD', function (req, res) {
     });
 
 });
+
+app.get('/GraphicHHByDay/:sid/:monthcode/:levelid/:AD/:SD/:BD', function (req, res) {
+    
+    let surveyId = req.params.sid;
+    let monthCode = req.params.monthcode;
+    let levelId = req.params.levelid;
+    let aimagCode = req.params.AD;
+    let soumCode = req.params.SD;
+    let bagCode = req.params.BD;
+
+    if (!surveyId) {
+     return res.status(400).send({ error: true, message: 'Please provide user_id' });
+    }
+
+    dbConn.query('CALL spGetGraphicHHCountByDay(?,?,?,?,?,?)',[surveyId, monthCode, levelId, aimagCode, soumCode, bagCode], function (error, results, fields) {
+     if (error) throw error;
+      return res.send({ error: false, data: results, message: 'spGetClusters.' });
+    });
+
+});
+app.get('/GraphicHHByInterviewer/:sid/:monthcode/:levelid/:AD/:SD/:BD', function (req, res) {
+    
+    let surveyId = req.params.sid;
+    let monthCode = req.params.monthcode;
+    let levelId = req.params.levelid;
+    let aimagCode = req.params.AD;
+    let soumCode = req.params.SD;
+    let bagCode = req.params.BD;
+
+    if (!surveyId) {
+     return res.status(400).send({ error: true, message: 'Please provide user_id' });
+    }
+
+    dbConn.query('CALL spGetGraphicHHCountByInterviewer(?,?,?,?,?,?)',[surveyId, monthCode, levelId, aimagCode, soumCode, bagCode], function (error, results, fields) {
+     if (error) throw error;
+      return res.send({ error: false, data: results, message: 'spGetClusters.' });
+    });
+
+});
+
+
+app.get('/GraphicHHCountByLocation/:sid/:monthcode/:levelid/:AD/:SD/:BD', function (req, res) {
+    
+    let surveyId = req.params.sid;
+    let monthCode = req.params.monthcode;
+    let levelId = req.params.levelid;
+    let aimagCode = req.params.AD;
+    let soumCode = req.params.SD;
+    let bagCode = req.params.BD;
+
+    if (!surveyId) {
+     return res.status(400).send({ error: true, message: 'Please provide user_id' });
+    }
+
+    dbConn.query('CALL spGetGraphicHHCountByLocation(?,?,?,?,?,?)',[surveyId, monthCode, levelId, aimagCode, soumCode, bagCode], function (error, results, fields) {
+     if (error) throw error;
+      return res.send({ error: false, data: results, message: 'spGetClusters.' });
+    });
+
+});
+
+
+app.get('/GraphicHHCountByMonth/:sid/:monthcode/:levelid/:AD/:SD/:BD', function (req, res) {
+    
+    let surveyId = req.params.sid;
+    let monthCode = req.params.monthcode;
+    let levelId = req.params.levelid;
+    let aimagCode = req.params.AD;
+    let soumCode = req.params.SD;
+    let bagCode = req.params.BD;
+
+    if (!surveyId) {
+     return res.status(400).send({ error: true, message: 'Please provide user_id' });
+    }
+
+    dbConn.query('CALL spGetGraphicHHCountByMonth(?,?,?,?,?,?)',[surveyId, monthCode, levelId, aimagCode, soumCode, bagCode], function (error, results, fields) {
+     if (error) throw error;
+      return res.json({ error: false, data: results, message: 'spGetClusters.' });
+    });
+
+});
+
+app.get('/DisplayHouseholdByPoint/:surveyId/:clusterid', function (req, res) {
+    
+    let surveyId = req.params.surveyId;;
+    let clusterid = req.params.clusterid;
+    let procedureName = surveyId == 1 ? "prGetInterviewerHSES" : "prGetInterviewerAXC";
+  
+    if (!clusterid) {
+     return res.status(400).send({ error: true, message: 'Please provide clusterid' });
+    }
+	
+    dbConn.query('CALL ' + procedureName + '(?)',[clusterid], function (error, results, fields) {
+     if (error) throw error;
+      return res.json({ error: false, data: results, message: 'DisplayHouseholdByPoint.' });
+    });
+
+});
+
+
+
 // Retrieve user with id
 
 
 
-
-
-
-
-
  // set port
- app.listen(3000, function () {
-     console.log('Node app is running on port 3000');
+ app.listen(3010, function () {
+     console.log('Node app is running on port 3010');
  });
  module.exports = app;
