@@ -10,10 +10,10 @@ var express = require('express');
 
  // connection configurations
  var dbConn = mysql.createConnection({
-    host: '10.0.1.13',
+    host: 'localhost',
     user: 'root',
-    password: 'qpmz.1214.',
-    database: 'csweb'
+    password: '',
+    database: ''
 });
 // connect to database
 dbConn.connect(); 
